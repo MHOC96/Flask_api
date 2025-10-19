@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import os
+import psutil
 
 app = Flask(__name__)
 
@@ -95,9 +96,16 @@ def categorize_result(test, value, sex=None):
         return 'Error in classification'
 
 
+@app.route('/')
+def home():
+    return "Hello World!"
+
 @app.route('/predict', methods=['POST'])
 def predict_all():
     try:
+        process = psutil.Process(os.getpid())
+        mem_before = process.memory_info().rss / (1024 * 1024)  # in MB
+
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No input data provided'}), 400
@@ -122,10 +130,17 @@ def predict_all():
                 'status': category
             }
 
-        return jsonify({'predictions': results})
+        mem_after = process.memory_info().rss / (1024 * 1024)
+        mem_used = mem_after - mem_before
+
+        return jsonify({
+            'predictions': results,
+            'memory_usage_MB': round(mem_used, 3)
+        })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 if __name__ == '__main__':
