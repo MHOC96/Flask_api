@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 import pandas as pd
 import os
-import psutil
 
 app = Flask(__name__)
 
@@ -25,8 +24,8 @@ features = {
     'B12': ['age', 'hb', 'hct', 'rbc', 'mcv', 'mch'],
     'CRP': ['wbc', 'neutrophils', 'lymphocytes', 'alt', 'ast', 'ggt', 'albumin'],
     'Cystatin_C': ['age', 'sex', 'urea', 'creatinine', 'egfr', 'albumin'],
-    'HBA1C': ['age','fpg','triglycerides','cholesterol_total','hdl','ldl','alt','ast','hb','hct','rbc','mcv','mch','mchc'],
-    'AFP': ['age','sex','alt','ast','alp','ggt','bilirubin_total','bilirubin_direct','albumin']
+    'HBA1C': ['age', 'fpg', 'triglycerides', 'cholesterol_total', 'hdl', 'ldl', 'alt', 'ast', 'hb', 'hct', 'rbc', 'mcv', 'mch', 'mchc'],
+    'AFP': ['age', 'sex', 'alt', 'ast', 'alp', 'ggt', 'bilirubin_total', 'bilirubin_direct', 'albumin']
 }
 
 
@@ -46,7 +45,8 @@ ranges = {
 def categorize_result(test, value, sex=None):
     try:
         if test == 'Ferritin':
-            limits = ranges['Ferritin']['male' if str(sex).upper().startswith('M') else 'female']
+            limits = ranges['Ferritin']['male' if str(
+                sex).upper().startswith('M') else 'female']
             if value < limits['low']:
                 return 'Low Abnormal'
             elif value > limits['high']:
@@ -96,16 +96,14 @@ def categorize_result(test, value, sex=None):
         return 'Error in classification'
 
 
-@app.route('/')
+@app.route('/home')
 def home():
-    return "Hello World!"
+    return "Hello World! Testing on the server MHOC"
+
 
 @app.route('/predict', methods=['POST'])
 def predict_all():
     try:
-        process = psutil.Process(os.getpid())
-        mem_before = process.memory_info().rss / (1024 * 1024)  # in MB
-
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No input data provided'}), 400
@@ -130,17 +128,12 @@ def predict_all():
                 'status': category
             }
 
-        mem_after = process.memory_info().rss / (1024 * 1024)
-        mem_used = mem_after - mem_before
-
         return jsonify({
-            'predictions': results,
-            'memory_usage_MB': round(mem_used, 3)
+            'predictions': results
         })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 if __name__ == '__main__':
