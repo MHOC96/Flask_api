@@ -96,7 +96,7 @@ def categorize_result(test, value, sex=None):
         return 'Error in classification'
 
 
-@app.route('/home')
+@app.route('/')
 def home():
     return "Hello World! Testing on the server MHOC"
 
